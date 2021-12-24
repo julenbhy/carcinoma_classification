@@ -15,39 +15,30 @@ BATCH_SIZE = 8  # size of the readed batches from generator, must fit on memory
 VAL_SPLIT = 0.2  # fraction of the images used for validation
 
 # Image generator
-
-
-train_generator = train_datagen.flow_from_directory(  
-    train_data_dir,
-    target_size=(img_width, img_height),
-    batch_size=batch_size,
-    class_mode='categorical')
-
-validation_generator = test_datagen.flow_from_directory(  
-    validation_data_dir,
-    target_size=(img_width, img_height),
-    batch_size=batch_size,
-    class_mode='categorical')
-    
+   
+PREPROCESS = #funcion de preprocesado de imagenes
     
 train_datagen = ImageDataGenerator(rescale=1./255,
                                   shear_range=0.2,
                                   zoom_range=0.2,
                                   rotation_range = 5,
                                   horizontal_flip=True,
-                                  validation_split=0.2) # set validation split
+                                  vertical_flip=True,
+                                  validation_split=0.2,# set validation split
+                                  preprocessing_function=PREPROCESS) 
 
-train_generator = train_datagen.flow_from_directory(
-    TRAIN_PATH,
-    batch_size=BATCH_SIZE,
-    class_mode='binary',
-    subset='training') # set as training data
+train_generator = train_datagen.flow_from_directory(TRAIN_PATH,
+                                                    subset='training',
+                                                    batch_size=BATCH_SIZE,
+                                                    class_mode='binary',
+                                                    shuffle=True,) # set as training data
 
-validation_generator = train_datagen.flow_from_directory(
-    TRAIN_PATH, # same directory as training data
-    batch_size=BATCH_SIZE,
-    class_mode='binary',
-    subset='validation') # set as validation data
+validation_generator = train_datagen.flow_from_directory(TRAIN_PATH, # same directory as training data
+                                                         subset='validation',
+                                                         batch_size=BATCH_SIZE,
+                                                         class_mode='binary',
+                                                         shuffle=True,) # set as validation data
+
 
 
 # CNN construction
