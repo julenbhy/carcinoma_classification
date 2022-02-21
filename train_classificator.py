@@ -10,7 +10,7 @@ import cv2
 
 
 NUM_CLASSES = 2
-TRAIN_PATH = './train_dataset'   # dataset path
+TRAIN_PATH = './dataset'   # dataset path
 MAX_SIZE = 512  # the maximum size for images, if grater --> downsample
 BATCH_SIZE = 32  # size of the readed batches from generator, must fit on memory
 VAL_SPLIT = 0.2  # fraction of the images used for validation
@@ -37,7 +37,7 @@ train_datagen = ImageDataGenerator(rescale=1./255,
 train_generator = train_datagen.flow_from_directory(TRAIN_PATH,
                                                     subset='training',
                                                     batch_size=BATCH_SIZE,
-                                                    class_mode='categprocal',
+                                                    class_mode='categorical',
                                                     shuffle=True,) # set as training data
 
 validation_generator = train_datagen.flow_from_directory(TRAIN_PATH, # same directory as training data
