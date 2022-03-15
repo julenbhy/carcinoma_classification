@@ -41,7 +41,7 @@ for img in images:
         new_img = i.resize((int(w/DOWNSAMPLE), int(h/DOWNSAMPLE)))
         rgb_image = new_img.convert('RGB')
 
-        print('Saved: ', target_name,'.jpg')
         rgb_image.save(target_name+'.jpg')
+        print('Saved: ', target_name,'.jpg')
     except:
         print('ERROR: Converting', img, 'failed')
