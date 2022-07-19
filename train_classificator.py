@@ -2,34 +2,41 @@ import sys
 sys.path.append('../tools')
 import os
 import tensorflow as tf
+from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input
+from tensorflow.keras.layers import Input,GlobalMaxPooling2D,Dense
+from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+from imageGenerator import ImageGenerator
 
 
 
 NUM_CLASSES = 2
 TRAIN_PATH = './dataset'   # dataset path
-MAX_SIZE = 512  # the maximum size for images, if grater --> downsample
+SIZE = (640,304)  # original size (1920x912) -> (640x304)
 BATCH_SIZE = 32  # size of the readed batches from generator, must fit on memory
 VAL_SPLIT = 0.2  # fraction of the images used for validation
 
 
+
 ##########           Image generators           ##########
+
+
    
-PREPROCESS = None #funcion de preprocesado de imagenes
-    
+PREPROCESS = preprocess_input()  #funcion de preprocesado de imagenes
+  
 train_datagen = ImageDataGenerator(rescale=1./255,
-                                    rotation_range = 5,
-                                    shear_range=0.2,
-                                    zoom_range=0.2,
-                                    width_shift_range=0.0,
-                                    height_shift_range=0.0,
-                                    fill_mode='wrap',
-                                    brightness_range=None,
-                                    horizontal_flip=True,
-                                    vertical_flip=True,
+                                    #rotation_range = 5,
+                                    #shear_range=0.2,
+                                    #zoom_range=0.2,
+                                    #width_shift_range=0.0,
+                                    #height_shift_range=0.0,
+                                    #fill_mode='wrap',
+                                    #brightness_range=None,
+                                    #horizontal_flip=True,
+                                    #vertical_flip=True,
                                     validation_split=0.2,# set validation split
                                     preprocessing_function=PREPROCESS) 
 
@@ -38,38 +45,57 @@ train_generator = train_datagen.flow_from_directory(TRAIN_PATH,
                                                     subset='training',
                                                     batch_size=BATCH_SIZE,
                                                     class_mode='categorical',
-                                                    shuffle=True,) # set as training data
+                                                    shuffle=True,
+                                                    target_size=(512,None, 3)
+                                                    )
 
 validation_generator = train_datagen.flow_from_directory(TRAIN_PATH, # same directory as training data
                                                          subset='validation',
                                                          batch_size=BATCH_SIZE,
                                                          class_mode='categorical',
-                                                         shuffle=True,) # set as validation data
+                                                         shuffle=True,
+                                                         target_size=(None,None,3)
+                                                    )
 
 
+"""
+
+train_generator = ImageGenerator(TRAIN_PATH, batch_size=BATCH_SIZE, shuffle=True, max_dimension=MAX_SIZE)
+validation_generator = ImageGenerator(TRAIN_PATH, batch_size=BATCH_SIZE, max_dimension=MAX_SIZE)
+
+train_dataset = tf.data.Dataset.from_generator(train_generator,
+     (tf.float32, tf.int32),
+    (tf.TensorShape([None,None,None,3]), tf.TensorShape([None])))
+
+validation_dataset = tf.data.Dataset.from_generator(validation_generator,
+     (tf.float32, tf.int32),
+    (tf.TensorShape([None,None,None,3]), tf.TensorShape([None])))
+
+"""
 
 ##########          CNN Construction           ##########
 
 inputs = Input(shape=(None,None,3))
-net = MobileNetV2(include_top=False, alpha=0.35, weights='imagenet', input_tensor=inputs, classes=NUM_CLASSES = 2)
+net = MobileNetV2(include_top=False, alpha=0.35, weights='imagenet', input_tensor=inputs, classes=NUM_CLASSES)
 net = GlobalMaxPooling2D()(net.output)
-outputs = Dense(n_classes,activation='softmax')(net)
+outputs = Dense(NUM_CLASSES,activation='softmax')(net)
 model = Model(inputs=inputs,outputs=outputs)
 model.compile(optimizer='Adam', loss='sparse_categorical_crossentropy',metrics=['sparse_categorical_accuracy'])
 
+model_config = model.get_config()
+print(model.summary())
 
 ##########           Training           ##########
 
 history = model.fit(train_generator,
-                    validation_data=validation_generator,
+                    validation_data = validation_generator,
+                    #validation_split = 0.2,
                     epochs=10,
-                    verbose=1,
-                    workers=2,
-                    max_queue_size=20)
+                    verbose=1)
 
-model_name = './trained_models/classification_model.hdf5'
-print('Saving model to:', model_name)
-model.save(model_name)
+save_path = './trained_models/classification_model.hdf5'
+print('Saving model to:', save_path)
+model.save(save_path)
 
 
 
