@@ -1,5 +1,5 @@
 # carcinoma_classification
-CNN developed on Tensorflow and Keras for carcinoma image classification.
+CNN developed on Tensorflow and Keras for carcinoma binary classification.
 
 
 ## AUTHORS:
