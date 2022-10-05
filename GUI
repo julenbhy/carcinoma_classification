@@ -1,0 +1,155 @@
+import sys
+from tkinter import *
+from tkinter import filedialog, messagebox
+from PIL import Image
+from PIL import ImageTk
+import numpy as np
+#import cv2
+import webbrowser
+
+
+#import tensorflow as tf
+#from keras.models import load_model
+#from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+
+
+MODEL = None
+
+
+class Aplication():
+
+    def __init__(cls):
+        cls.window = Tk()
+        cls.window.title("Cancer classifier")
+        #cls.window.eval('tk::PlaceWindow . center')
+        #cls.window.iconphoto(True, tk.PhotoImage(file='resources/logo.png'))
+        cls.window.geometry("600x500")
+        cls.window.columnconfigure(0, weight=1)
+        cls.window.rowconfigure(0, weight=1)
+        cls.frame = None
+        
+        
+        # class variable definition
+        cls.INPUT_PATH = None
+
+        cls.create_menu()
+        cls.single_predict_menu()
+        cls.window.mainloop()
+
+    def create_menu(cls):
+
+        menubar = Menu(cls.window)
+        cls.window.config(menu=menubar)
+        
+        predict_menu = Menu(menubar)
+        predict_menu.add_command(label="Predict single image", command=lambda: cls.single_predict_menu())
+        predict_menu.add_command(label="Predict from directory", command=lambda: cls.multiple_predict_menu())
+        
+        menubar.add_cascade(label="Predict", menu=predict_menu)
+        menubar.add_command(label="Options", command=lambda: cls.options_menu())
+        menubar.add_command(label="Help", command=lambda: cls.help_popup())
+        menubar.add_command(label="About...", command=lambda: cls.about_popup())
+        menubar.add_separator()
+        menubar.add_command(label="Exit", command=lambda: cls.window.quit())
+    
+    def single_predict_menu(cls):
+        # Clear the frame
+        try: cls.frame.destroy()
+        except: pass
+        cls.frame = LabelFrame(cls.window, text='Make single prediction')
+        cls.frame.pack()
+
+        # Input image selection
+        Label(cls.frame, text='Input image: ').grid(row=1, column=0, padx=5, pady=5)
+        Button(cls.frame, text='Select image', command=lambda: cls.set_image()) \
+            .grid(row=1, column=1, padx=5, pady=5)
+
+        # button Predict the result
+        Button(cls.frame, text='Predict', command=lambda: cls.predict_single_image()) \
+            .grid(row=3, columnspan=2, padx=5, pady=5)
+
+        # Output the prediction
+        Label(cls.frame, text='Prediction: ').grid(row=4, column=0, padx=5, pady=5)
+
+
+    def multiple_predict_menu(cls):
+        messagebox.showinfo(title='Help', message='On development')
+
+
+    def help_popup(cls):
+        messagebox.showinfo(title='Help', message='On development')
+
+    def options_menu(cls):
+        messagebox.showinfo(title='Help', message='On development')
+
+    def about_popup(cls):
+        popup = Tk()
+        popup.wm_title('About...')
+        popup.eval('tk::PlaceWindow . center')
+        
+        Label(popup, text='Authors:'
+                              '\n\n\tArauzo Bravo, Marcos Jesus : mararabra@yahoo.co.uk'
+                              '\n\n\tArrieta Legorburu, Alex: a.arrieta.legorburu@gmail.com'
+                              '\n\n\tBohoyo Bengoetxea, Julen : julenbhy@gmail.com'
+                              '\n\n\tGracia Bolinches, Carlos Daniel: cgracia@tauli.cat')\
+            .grid(row=0, column=0, sticky=W, padx=5, pady=5)
+
+        link = Label(popup, fg="blue", cursor="hand2",
+              text='Github: https://github.com/julenbhy/carcinoma_classification')
+        link.grid(row=1, column=0, sticky=W, padx=5, pady=5)
+        link.bind('<Button-1>', lambda e:  webbrowser.get('firefox')
+                                            .open_new_tab(url='https://github.com/julenbhy/carcinoma_classification'))
+
+        Button(popup, text="Close", command=popup.destroy)\
+            .grid(row=2, column=0, sticky=E, padx=5, pady=5)
+
+    def set_image(cls):
+        filetypes = [("image", ".jpeg"), ("image", ".jpg"),]
+        cls.INPUT_PATH = filedialog.askopenfilename(title='Select input image', filetypes=filetypes)
+
+        canvas_for_image = Canvas(cls.frame, height=300, width=300,)
+        canvas_for_image.grid(row=2, columnspan=2, sticky='nesw', padx=0, pady=0)
+
+        # create image from image location resize it to 200X200 and put in on canvas
+        image = Image.open(cls.INPUT_PATH)
+        canvas_for_image.image = ImageTk.PhotoImage(image.resize((400, 400), Image.ANTIALIAS))
+        canvas_for_image.create_image(0, 0, image=canvas_for_image.image, anchor='nw')
+
+            
+    def get_prediction(cls, path):
+        global MODEL
+        
+        img = cv2.imread(path)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = tf.keras.applications.mobilenet_v2.preprocess_input(img)#Preprocess based on the pretrained backbone...
+        img = np.expand_dims(img, axis = 0) # array shape to (1, SIZE, SIZE, 3)
+
+        prediction = MODEL.predict(img)
+        return prediction[0]
+
+            
+
+    def print_variables(cls):
+        print('\n')
+        print('Input Path', cls.INPUT_PATH)
+        print('Output Path', cls.OUTPUT_PATH)
+        print('Predictions', cls.PREDICTIONS.len())
+        print('Resolution', cls.DOWNSAMPLE.get())
+        print('Tile Size', cls.TILE_SIZE.get())
+        print('Cmap', cls.CMAP.get())
+        print('Plot Heatmap', cls.PLOT_HEATMAPS.get())
+        print('Plot Individual', cls.PLOT_INDIVIDUAL.get())
+        
+def main():
+    global MODEL
+
+    default_model = './trained_models/classification_model_08-08-2022.hdf5'
+    print('Loading model', MODEL)
+    #try: MODEL = load_model('../trained_models/'+default_model, compile=False)
+    #except Exception: sys.exit('ERROR: Model '+default_model+' not found')
+
+    app = Aplication()
+    return 0
+
+if __name__ == '__main__':
+    main()
