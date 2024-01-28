@@ -7,7 +7,7 @@ import random
 
 split = 0.2
 
-### NEC filse ###
+### NEC files ###
 
 # Get the list of all files and directories
 origin_path = "./train/NEC/"
@@ -28,7 +28,7 @@ for i in range(test_files):
 
 
 
-### NEC filse ###
+### NEC files ###
 
 # Get the list of all files and directories
 origin_path = "./train/NET1/"
